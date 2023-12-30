@@ -1,35 +1,30 @@
-using Core.Entities;
-using Core.Interfaces;
+using API.Extensions;
+using API.Middleware;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<StoreContext>(opt => 
-{
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
 
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-// This directive enables automapper to take place. We're automapping between Product and ProductToReturnDto
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+// Delgate to our Extension class, to perform the rest of the services decoration.
+builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+// This directive pushes all actions through our Exception Handling middleware, enabling us to catch any server errors, and format a response
+// through ApiException.
+app.UseMiddleware<ExceptionMiddleware>();
+
+
+// This directive enables us to catch errors and reformat the response (via the ErrorController)
+app.UseStatusCodePagesWithReExecute("/errors/{0}");
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // This directive enables the app to serve static content for the product images:
 app.UseStaticFiles();
@@ -42,14 +37,14 @@ using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 var context = services.GetRequiredService<StoreContext>();
 var logger = services.GetRequiredService<ILogger<Program>>();
- try
- {
+try
+{
     await context.Database.MigrateAsync();
     await StoreContextSeed.SeedAsync(context);
- }
- catch (Exception ex)
- {
+}
+catch (Exception ex)
+{
     logger.LogError(ex, "An error occured during migration.");
- }
+}
 
 app.Run();
