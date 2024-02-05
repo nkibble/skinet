@@ -24,6 +24,7 @@ namespace API.Extensions
             // This directive enables automapper to take place. We're automapping between Product and ProductToReturnDto
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+
             // This directive enables us to catch and store any error messages raised during the ApiController validation checks:
             services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -43,6 +44,16 @@ namespace API.Extensions
                 };
             });
 
+            // CORS policy
+            services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy",
+                    policy => policy
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .WithOrigins("host://localhost:4200")
+                    );
+            });
 
             return services;
         }

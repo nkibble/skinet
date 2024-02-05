@@ -29,10 +29,14 @@ app.UseSwaggerUI();
 // This directive enables the app to serve static content for the product images:
 app.UseStaticFiles();
 
+// This directive enables a CORS (Cross-Origin Resource Sharing) policy to be used (set in ApplicationServicesExtensions):
+app.UseCors("CorsPolicy");
+
 app.UseAuthorization();
 
 app.MapControllers();
 
+// Prepare the database and copy the sample data:
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
 var context = services.GetRequiredService<StoreContext>();

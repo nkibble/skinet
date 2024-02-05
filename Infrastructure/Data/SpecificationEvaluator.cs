@@ -23,6 +23,24 @@ namespace Infrastructure.Data
                 query = query.Where(spec.Criteria);
             }
 
+            // Order By clause:
+            if (spec.OrderBy != null)
+            {
+                query = query.OrderBy(spec.OrderBy);
+            }
+
+            // Order By (Descending) clause:
+            if (spec.OrderByDescending != null)
+            {
+                query = query.OrderByDescending(spec.OrderByDescending);
+            }
+
+            // Perform pagination (if enabled):
+            if (spec.IsPagingEnabled) {
+                query = query.Skip(spec.Skip);
+                query = query.Take(spec.Take);
+            }
+
             query = spec.Includes.Aggregate(query, (current, include) => current.Include(include));
             return query;
         }

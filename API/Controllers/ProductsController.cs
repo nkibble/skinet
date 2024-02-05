@@ -5,11 +5,12 @@ using Core.Specifications;
 using API.Dtos;
 using AutoMapper;
 using API.Errors;
+using API.Helpers;
 
 namespace API.Controllers
 {
     public class ProductsController : BaseApiController
-    {
+    { 
         private readonly IGenericRepository<Product> _productsRepo;
         private readonly IGenericRepository<ProductBrand> _productBrandRepo;
         private readonly IGenericRepository<ProductType> _productTypeRepo;
@@ -27,10 +28,14 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts()
-        {
-            var products = await _productsRepo.ListAsync(new ProductsWithTypesAndBrandsSpecification());
-            return Ok(_mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(products));
+        public async Task<ActionResult<Pagination<ProductToReturnDto>>> GetProducts([FromQuery]ProductSpecParams productParams)
+        {   
+            // Note: We need the [FromQuery] attribute to tell ApiController that we're taking the object values from the query string.
+
+            var products = await _productsRepo.ListAsync(new ProductsWithTypesAndBrandsSpecification(productParams));
+            var count = await _productsRepo.CountAsync(new ProductWithFiltersForCountSpecification(productParams));
+            var data = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(products);
+            return Ok(new Pagination<ProductToReturnDto>(productParams.PageIndex, productParams.PageSize, count, data));
         }
 
         [HttpGet("{id}")]
@@ -53,6 +58,11 @@ namespace API.Controllers
         public async Task<ActionResult<IReadOnlyList<ProductType>>> GetProductTypes()
         {
             return Ok(await _productTypeRepo.ListAllAsync());
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return ToString();
         }
     }
 }
