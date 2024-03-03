@@ -11,7 +11,7 @@
 
             <h5 class="text-warning ms-3">Brands</h5>
             <ul class="list-group my-3">
-                <li class="list-group-item" 
+                <li class="list-group-item" style="cursor: pointer"
                     *ngFor="let brand of brands"
                     [class.active]="shopParams.brandId === brand.id"
                     [value]="brand.id"
@@ -20,7 +20,7 @@
             </ul>
             <h5 class="text-warning ms-3">Types</h5>
             <ul class="list-group my-3">
-                <li class="list-group-item" 
+                <li class="list-group-item" style="cursor: pointer"
                     *ngFor="let type of types"
                     [class.active]="shopParams.typeId === type.id"
                     [value]="type.id"
