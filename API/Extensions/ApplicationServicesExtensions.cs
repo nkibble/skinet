@@ -3,6 +3,7 @@ using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace API.Extensions
 {
@@ -18,8 +19,18 @@ namespace API.Extensions
                 opt.UseSqlite(config.GetConnectionString("DefaultConnection"));
             });
 
+            // Redis:
+            services.AddSingleton<IConnectionMultiplexer>(c => 
+            {
+                var options = ConfigurationOptions.Parse(config.GetConnectionString("Redis"));
+                return ConnectionMultiplexer.Connect(options);
+            }
+            );
+
+            // Repository Dependency Injection:
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<IBasketRepository, BasketRepository>();
 
             // This directive enables automapper to take place. We're automapping between Product and ProductToReturnDto
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
